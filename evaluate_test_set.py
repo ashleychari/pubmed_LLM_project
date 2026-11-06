@@ -15,14 +15,9 @@ client = anthropic.Anthropic(api_key=os.environ["CLAUDE_API_KEY"])
 
 # Read in synthetic and my questions and set the top number of results returned to 5
 TOP_K = 5
-tests = pd.read_csv("generated_and_base_test_questions.csv", dtype=str, keep_default_na=False)
+tests = pd.read_csv("results/generated_and_base_test_questions.csv", dtype=str, keep_default_na=False)
 
-# Function that sends question from tests over to the claude api and
-# asks it to answer the question by the following:
-# 1) If question type is "unanswerable" claude should Decline or answer anyway
-# 2) If question is "Correct", "partial" or "incorrect" then if matches main point,
-# check if misses point, or partially misses point
-# 3) Grades the response 
+# Grades the responses to questions
 def grade(question, expected, answer, question_type):
     if question_type == "unanswerable":
         labels = "DECLINED or ANSWERED"
@@ -69,7 +64,6 @@ def grade(question, expected, answer, question_type):
     # Use the first word as the label:
     #   .strip("*.:") removes formatting, so "**CORRECT**" becomes "CORRECT"
     #   .upper() makes it capitals, so "Correct" becomes "CORRECT"
-    # If the reply is empty, use "UNKNOWN" instead of crashing.
     verdict = text.split()[0].strip("*.:").upper()
 
     # Return the label for scoring, and the full reply so you can see
@@ -130,12 +124,13 @@ if len(unexpected) > 0:
     print("Unexpected labels:", unexpected)
 
 summary = results.groupby("type").agg(
-    questions=("question", "count"),
-    retrieval_rate=("any_retrieved", "mean"),
-    citation_rate=("any_cited", "mean"),
-    answer_score=("score", "mean"),
+       questions=("question", "count"),
+       retrieval_rate=("any_retrieved", "mean"),
+       citation_rate=("any_cited", "mean"),
+       answer_score=("score", "mean"),
+       truncated=("truncated", "sum"),
 )
 
-summary.to_csv("test_set_summary.csv")
-results.to_csv("test_set_results.csv", index=False)  # resave with the score column
+summary.to_csv("results/test_set_summary.csv")
+results.to_csv("results/test_set_results.csv", index=False)  # resave with the score column
 print(summary)

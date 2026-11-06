@@ -13,7 +13,7 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def search(query, top_k=5):
     query_embedding = model.encode([query], normalize_embeddings=True)
-    # Use consine similarity to determine which articles are most
+    # Use cosine similarity to determine which articles are most
     # similar to the search query
     scores = (embeddings @ query_embedding.T).squeeze(axis=1)
     top_indices = scores.argsort()[::-1][:top_k]
@@ -24,7 +24,7 @@ def search(query, top_k=5):
     return results
 
 if __name__ == "__main__":
-    search(sys.argv[1], sys.argv[2])
+    search(sys.argv[1])
 
 
     

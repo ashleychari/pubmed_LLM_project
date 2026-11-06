@@ -16,7 +16,7 @@ count = min(int(results["Count"]), 600)  # cap for this example
 batch_size = 200
 records = []
 
-# Grab 500 articles with the depression keyword
+# Grab 600 articles with the depression keyword
 for start in range(0, count, batch_size):
     handle = Entrez.efetch(
         db="pubmed",

@@ -30,7 +30,7 @@ for _, row in sample.iterrows():
     questions.append(question)
 
 sample['question'] = questions
-TOP_K = 50
+TOP_K = 5
 results = []
 
 for _, row in sample.iterrows():
