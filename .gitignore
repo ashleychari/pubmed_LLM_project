@@ -5,3 +5,4 @@ error_analysis.py
 make_eval_table.py
 !results/generated_and_base_test_questions.csv
 !results/test_set_summary.csv
+*.ipynb
