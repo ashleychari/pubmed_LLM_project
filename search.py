@@ -24,7 +24,7 @@ def search(query, top_k=5):
     return results
 
 if __name__ == "__main__":
-    search(sys.argv[1])
+    print(search(sys.argv[1]))
 
 
     

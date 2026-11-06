@@ -2,7 +2,6 @@ import anthropic
 from dotenv import load_dotenv
 from search import search
 import os
-import sys
 import pandas as pd
 from question_llm import answer_question
 import re

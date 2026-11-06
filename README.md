@@ -12,10 +12,33 @@ This project answers questions about depression research using retrieval-augment
 5. `question_llm.py`: Sends the top k abstracts (those with a similarity score of at least 0.3) to Claude, which answers the question using only those abstracts and cites their PMIDs.
 6. `evaluate_llm.py`: An initial test that has Claude write one question for each of 20 sampled abstracts, then checks whether search retrieves the source abstract and whether Claude cites it.
 7. `evaluate_test_set.py`: Runs the 35-question test set through the system, records each answer, checks retrieval and citations, and uses a separate Claude call to grade each answer against its expected answer.
-8. `make_eval_table.py`: Builds the results table from the hand-scored `scoring_sheet.csv`.
 
 ## Environment setup
-Required packages can be found in requirements.txt. User will also need access to Claude API and NCBI_EMAIL to get access to PubMed articles.
+
+1. Install the required packages:
+
+  ```bash
+  python3 -m pip install -r requirements.txt
+  ```
+
+2. Create a `.env` file in the project folder with your NCBI email and Claude API key:
+
+  ```bash
+  NCBI_EMAIL=you@example.com
+  CLAUDE_API_KEY=your_key_here
+  ```
+
+3. Run the scripts in order:
+
+  ```bash
+  python3 grab_pubmed_docs.py
+  python3 clean_abstracts.py
+  python3 create_embeddings.py
+  python3 evaluate_test_set.py
+  ```
+
+  To ask your own question, run `python3 question_llm.py "your question"`.
+
 
 ## Method
 

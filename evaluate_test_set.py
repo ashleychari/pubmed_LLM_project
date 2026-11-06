@@ -39,12 +39,12 @@ def grade(question, expected, answer, question_type):
     # because any spaces inside the triple quotes become part of the prompt.
     prompt = f"""Grade this answer. {instructions}
 
-    Question: {question}
-    Expected answer: {expected}
-    Answer to grade: {answer}
+Question: {question}
+Expected answer: {expected}
+Answer to grade: {answer}
 
-    On the first line, write only one label: {labels}.
-    On the second line, give a one-sentence reason."""
+On the first line, write only one label: {labels}.
+On the second line, give a one-sentence reason."""
 
     # Send the prompt to Claude in a new API call. This is separate from
     # the call that produced the answer, so Claude acts only as a judge.
@@ -102,7 +102,6 @@ for _, row in tests.iterrows():
 results = pd.DataFrame(rows)
 # Flag answers that don't end like a finished sentence
 results["truncated"] = ~results["answer"].str.strip().str[-1].isin([".", ")", "*", '"'])
-results.to_csv("test_set_results.csv", index=False)
 
 answerable = results[results["type"] != "unanswerable"]
 print(answerable.groupby("type")[["any_retrieved", "any_cited"]].mean())

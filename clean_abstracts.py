@@ -19,7 +19,7 @@ plt.savefig("word_counts.png")
 for _, row in pubmed_df.sort_values("n_words").head(20).iterrows():
     print(row["n_words"], "|", row["title"], "|", row["abstract"][:200])
 
-# Based on the histogram cutoff is abstracts less than 10 words
+# Based on the histogram cutoff is abstracts 10 or fewer words
 pubmed_df = pubmed_df[pubmed_df['n_words'] > 10]
 
 pubmed_df.to_csv("pubmed_cleaned_articles.csv", index=False)
