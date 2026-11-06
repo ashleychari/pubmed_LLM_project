@@ -1,2 +1,5 @@
 .env
 *.csv
+*.npy
+make_eval_table.py
+error_analysis.py
