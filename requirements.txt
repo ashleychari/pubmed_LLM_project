@@ -1,0 +1,6 @@
+biopython
+pandas
+python-dotenv
+sentence-transformers
+anthropic
+tabulate

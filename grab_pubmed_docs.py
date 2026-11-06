@@ -48,24 +48,6 @@ for record in records:
     })
 
 # convert list of dictionaries into a table
-pubs_df = pd.DataFrame()
-pmids = []
-titles = []
-abstracts = []
-years = []
-journals = []
-
-for article_info in articles:
-    pmids.append(article_info['pmid'])
-    titles.append(article_info['title'])
-    abstracts.append(article_info['abstract'])
-    years.append(article_info['year'])
-    journals.append(article_info['journal'])
-
-pubs_df['pmid'] = pmids
-pubs_df['title'] = titles
-pubs_df['abstract'] = abstracts
-pubs_df['year'] = years
-pubs_df['journal'] = journals
+pubs_df = pd.DataFrame(articles)
 
 pubs_df.to_csv("pubmed_articles_info.csv", index=False)

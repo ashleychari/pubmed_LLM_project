@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Read in data
 pubmed_df = pd.read_csv("pubmed_articles_info.csv")
@@ -12,6 +13,7 @@ pubmed_df = pubmed_df.dropna(subset=["abstract"])
 pubmed_df["n_words"] = pubmed_df["abstract"].fillna("").str.split().str.len()
 print(pubmed_df["n_words"].describe())
 pubmed_df["n_words"].hist(bins=50)
+plt.savefig("word_counts.png")
 
 # Read the lowest top 20
 for _, row in pubmed_df.sort_values("n_words").head(20).iterrows():

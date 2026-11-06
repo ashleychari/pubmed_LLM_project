@@ -15,40 +15,16 @@ This project answers questions about depression research using retrieval-augment
 8. `make_eval_table.py`: Builds the results table from the hand-scored `scoring_sheet.csv`.
 
 
-The evaluation checks three things:
-
-1. **Retrieval:** Does search find the right abstracts?
-2. **Answers:** Are the answers faithful to the abstracts, and do they answer the question?
-3. **Failures:** Where and why does the system go wrong?
-
-## Test set
-
-The test set has 35 questions in three types:
-
-| Type | Count | What it tests |
-|---|---|---|
-| Specific | 10 | One abstract answers the question, which is reworded to avoid that abstract's exact terms |
-| Broad | 15 | Several abstracts are relevant, and the answer needs to combine them |
-| Unanswerable | 10 | The abstracts don't answer the question, so the system should decline |
-
-The unanswerable questions include close but uncovered topics (such as zuranolone and yoga), off-topic questions (such as how butterflies fly), and traps that share words with a real abstract but ask something it doesn't study.
-
-The specific and broad questions, expected answers, and supporting PMIDs were AI-generated from the dataset and reviewed by hand. None of their supporting abstracts appear in an earlier 20-question test, on which retrieval and citation were both 100%.
-
 ## Method
 
-- **Hit rate at 5:** The share of answerable questions where at least one supporting abstract appeared in the top 5 search results.
-- **Faithful (1 to 3):** Does the answer say only what the cited abstracts support?
-  - 3: Every claim is supported.
-  - 2: Mostly supported, with a minor error or overstatement.
-  - 1: Includes an unsupported or contradicted claim.
-- **Helpful (1 to 3):** Does the answer actually answer the question?
-  - 3: Answers directly with the key points.
-  - 2: Partly answers, or misses important points.
-  - 1: Doesn't answer.
-  - For unanswerable questions, 3 means it clearly declined and 1 means it answered anyway.
+Each test question is run through the full system, then scored automatically:
 
-Faithfulness and helpfulness were scored by hand against the cited abstracts, starting from AI-drafted scores that were reviewed and corrected. A separate Claude grader comparing each answer with the expected answer was used as a secondary check.
+- **Hit rate at 5:** The share of answerable questions where at least one supporting abstract appeared in the top 5 search results.
+- **Citation rate:** The share of answerable questions where Claude's answer cited at least one supporting PMID.
+- **Answer score:** A separate Claude call grades each answer against its expected answer.
+  - Answerable questions are graded CORRECT (1 point), PARTIAL (0.5), or INCORRECT (0).
+  - Unanswerable questions are graded DECLINED (1) or ANSWERED (0).
+- **Cut-off answers:** Answers that don't end with a finished sentence are flagged.
 
 ## Results
 
@@ -56,14 +32,16 @@ Faithfulness and helpfulness were scored by hand against the cited abstracts, st
 |---|---|---|---|---|
 | Questions | 10 | 15 | 10 | 35 |
 | Hit rate at 5 | 10 of 10 | 14 of 15 | n/a | 24 of 25 |
-| Faithful (1 to 3) | 3.00 | 2.93 | 3.00 | 2.97 |
-| Helpful (1 to 3) | 3.00 | 2.53 | 3.00 | 2.80 |
+| Citation rate | 10 of 10 | 14 of 15 | n/a | 24 of 25 |
+| Grader labels | 10 correct | 4 correct, 10 partial, 1 incorrect | 10 declined | |
+| Answer score | 1.00 | 0.60 | 1.00 | 0.83 |
+| Cut-off answers | 0 | 5 | 0 | 5 |
 
 **Key findings:**
 
-- **Answers are highly faithful.** In 34 of 35 answers, every checked claim was supported by the cited abstracts. Answers also regularly pointed out study limitations, such as observational designs and small samples.
-- **The system declines when it should.** It declined all 10 unanswerable questions, including the traps, and didn't fill gaps from general knowledge.
-- **Broad questions are the weak spot.** Hit rate at 5 only checks for at least one supporting abstract. Many broad questions retrieved only some of theirs, so answers were accurate but incomplete.
+- **Specific questions work well.** Search found and Claude cited the right abstract every time, and all 10 answers were graded correct.
+- **The system declines when it should.** It declined all 10 unanswerable questions, including the trap questions.
+- **Broad questions are the weak spot.** Most broad answers were graded partial, because search often found only some of the relevant abstracts and 5 answers were cut off.
 
 ## Failure cases
 
@@ -71,36 +49,18 @@ Faithfulness and helpfulness were scored by hand against the cited abstracts, st
 
 **Question:** "Do online or app-based mental health programs reduce depression?"
 
-- **What happened:** Search retrieved none of the 6 supporting abstracts. The answer relied on internet-based exercise and feasibility studies, then concluded the evidence on other online programs was limited.
+- **What happened:** Search retrieved none of the 6 supporting abstracts, so the answer was graded incorrect.
 - **Why:** The question's wording ("online or app-based") didn't match the abstracts' terms, such as "digital health interventions" and "e-Health". Many similar digital-health abstracts also competed for only 5 spots.
-- **Takeaway:** The answer stayed faithful to what it received, so the failure was in retrieval, not generation. Similar but smaller gaps appeared in B5, B8, and B14.
+- **Takeaway:** The answer stayed within the abstracts it received, so the failure was in retrieval, not generation.
 
 ### 2. Answers were cut off (B2, B3, B9, B10, and B14)
 
-- **What happened:** 5 of 35 answers ended mid-sentence. In B14, most of the treatment discussion was lost.
-- **Why:** The response length limit (`max_tokens`) was too low for longer broad answers.
-- **Takeaway:** The Claude grader didn't flag these, which shows why reading answers by hand matters.
+- **What happened:** 5 of the 15 broad answers ended mid-sentence.
+- **Why:** The response limit (`max_tokens=1024` in `question_llm.py`) was too low for longer answers.
+- **Takeaway:** The grader still marked some of these correct, so the cut-off check is needed alongside it.
 
-### 3. Small factual slip (B12)
+## Limitations of the automated grader
 
-- **What happened:** The answer said "the other nine dietary exposures" showed no link to depression, but the study lists 11, so it should have said ten.
-- **Takeaway:** This was the only answer that misstated its source. Small counting errors can slip past citation checks.
-
-## Automated grader compared with hand scores
-
-The Claude grader often marked broad answers `PARTIAL` because they missed points from the expected answer, even when they fully answered the question. Expected answers for broad questions are not exhaustive, so the grader can be too strict. It also missed the cut-off answers. My manual review caught both problems.
-
-## Limitations
-
-- **Small test set:** 35 questions show patterns, but not precise rates.
-- **Some synthetic questions:** The some of the questions were AI-generated, so they may be easier or more uniform than real user questions. The human made questions were primarily in the unanswerable section.
-- **Incomplete answer keys:** Broad questions may have relevant abstracts that aren't listed as supporting.
-- **Lenient metric:** Hit rate at 5 counts one supporting abstract as a hit, even when a broad question needs several.
-- **One reviewer:** Scores were reviewed by one person, with no second rater to check agreement.
-
-## Next steps
-
-1. Raise `max_tokens` and flag any answer that stops because it hit the limit.
-2. Improve retrieval for broad questions, for example by raising `top_k`, rewriting queries before searching, or adding keyword search (hybrid search).
-3. Measure recall for broad questions (the share of supporting abstracts retrieved), not just hit rate.
-4. Add more real user questions to the test set.
+- **It can be too strict.** It compares answers with expected answers that may not list every relevant abstract, so a complete answer can be marked partial.
+- **It doesn't check faithfulness.** It doesn't confirm that every claim is supported by the cited abstracts.
+- **It's an AI model judging another AI's answers**, so its labels are not verified by a person.

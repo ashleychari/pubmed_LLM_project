@@ -106,6 +106,8 @@ for _, row in tests.iterrows():
     })
 
 results = pd.DataFrame(rows)
+# Flag answers that don't end like a finished sentence
+results["truncated"] = ~results["answer"].str.strip().str[-1].isin([".", ")", "*", '"'])
 results.to_csv("test_set_results.csv", index=False)
 
 answerable = results[results["type"] != "unanswerable"]
