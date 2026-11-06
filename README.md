@@ -5,13 +5,14 @@
 This project answers questions about depression research using retrieval-augmented generation (RAG). It searches 581 PubMed abstracts with sentence embeddings, sends the top 5 matches to Claude (`claude-sonnet-5-5`), and asks it to answer only from those abstracts and cite PMIDs.
 
 ### Code setup
-1. grab_pubmed_docs.py -> Uses the biopython to grab 600 pubmed publications for a specific query (depression)
-and create a table
-2. clean_abstracts.py -> Creates a histogram of how many words are in each publication and determine a cutoff for how many words the abstract needs to be. Remove publications with abstracts less than the cutoff or empty abstracts.
-3. create_embeddings.py -> Use sentence-transformer to create embeddings for abstracts
-4. search.py -> Use embeddings to search for top k abstracts and use cosine similarity to find the most similar articles
-5. question_llm -> Use claude api to question the llm to find the k most abstracts that answer the question
-6. evaluate_test_set.py -> Give claude api a list of questions to answer and record it's response and evaulate the model with the method described below
+1. `grab_pubmed_docs.py`: Uses Biopython to fetch 600 PubMed articles for the query "Depression" and saves their PMID, title, abstract, year, and journal to a table.
+2. `clean_abstracts.py`: Plots a histogram of abstract word counts to choose a cutoff, then removes articles with empty abstracts or abstracts of 10 or fewer words.
+3. `create_embeddings.py`: Uses sentence-transformers (`all-MiniLM-L6-v2`) to create an embedding for each abstract.
+4. `search.py`: Embeds the question and uses cosine similarity to find the top k most similar abstracts.
+5. `question_llm.py`: Sends the top k abstracts (those with a similarity score of at least 0.3) to Claude, which answers the question using only those abstracts and cites their PMIDs.
+6. `evaluate_llm.py`: An initial test that has Claude write one question for each of 20 sampled abstracts, then checks whether search retrieves the source abstract and whether Claude cites it.
+7. `evaluate_test_set.py`: Runs the 35-question test set through the system, records each answer, checks retrieval and citations, and uses a separate Claude call to grade each answer against its expected answer.
+8. `make_eval_table.py`: Builds the results table from the hand-scored `scoring_sheet.csv`.
 
 
 The evaluation checks three things:
